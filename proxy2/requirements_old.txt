@@ -1,0 +1,6 @@
+scapy
+jaeger-client==4.3.0
+opentracing==2.3.0
+opentracing-instrumentation==3.2.1
+tornado==4.5.3
+ 

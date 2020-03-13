@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-configmap1
+data:
+  PROXY_PORT: "8000"
+  DST_PORT: "80"
+	SERVICE: "proxy1"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-configmap2
+data:
+  PROXY_PORT: "9000"
+  DST_PORT: "80"
+	SERVICE: "proxy2"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpbin-pod
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
+  labels:
+    app: httpbin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: httpbin
+  template:
+    metadata:
+      labels:
+        app: httpbin
+    spec:
+      initContainers:
+      - name: init-networking
+        image: utspark/init-networking:latest
+        envFrom:
+        - configMapRef:
+            name: env-configmap1
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+      containers:
+      - name: proxy1
+        image: utspark/py_proxy:latest
+        envFrom:
+        - configMapRef:
+            name: env-configmap1
+        ports:
+        - containerPort: 8000
+      - name: proxy2
+        image: utspark/py_proxy:latest
+        envFrom:
+        - configMapRef:
+            name: env-configmap2
+        ports:
+        - containerPort: 9000
+      - name: service
+        image: kennethreitz/httpbin
+        ports:
+        - containerPort: 80
