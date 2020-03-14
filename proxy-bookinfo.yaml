@@ -463,7 +463,7 @@ spec:
             - NET_ADMIN
       containers:
       - name: proxy
-        image: utspark/soc_proxy2:latest
+        image: utspark/socket_proxy:latest
         envFrom:
         - configMapRef:
             name: productpage-configmap
