@@ -57,8 +57,8 @@ def main():
         print(f"Could not open socket {message}")
         exit(1)
     #this line starts taking pcaps for us
-    p = Process(target=make_pcaps, args=())
-    p.start()
+    #p = Process(target=make_pcaps, args=())
+    #p.start()
 
     while 1:
         #listen loop for port 8000
@@ -113,19 +113,19 @@ def proxy_process(connection, clint_address, tracer):
             #make a new socket to forward the data
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((dst_server, dst_port))
-            s.send(request)
+            s.send(data)
 
             #receive on the new port
-        while 1:
-            # get the data sent to the container
-            data = s.recv(MAX)
-            if len(data) > 0:
-                #send data received back to sender
-                # data = modify_http(data)
-                connection.send(data)
-            else:
-                break
-        s.close()
+            while 1:
+                # get the data sent to the container
+                data = s.recv(MAX)
+                if len(data) > 0:
+                    #send data received back to sender
+                    # data = modify_http(data)
+                    connection.send(data)
+                else:
+                    break
+            s.close()
         connection.close()
     except socket.error as message:
         #tie up loose ends
@@ -142,12 +142,10 @@ def modify_http(data, headers, span, tracer, child):
     tracer.inject(span_context=span.context, format=Format.HTTP_HEADERS, carrier=carrier)
     print(carrier)
     d = data.split(b"\r\n")
-    #k, v = 'uber-trace-id', carrier.get('uber-trace-id')
-    #if 'uber-trace-id' not in headers:
-    #    headers.insert(len(headers)-2, k)
-    #headers[k] = v
-    carrier.update(headers)
-    d1 = [(str(t)+': '+str(carrier.get(t))).encode('utf-8') for t in carrier]
+    k, v = 'uber-trace-id', carrier.get('uber-trace-id')
+    headers[k] = v
+    #carrier.update(headers)
+    d1 = [(str(t)+': '+str(headers.get(t))).encode('utf-8') for t in headers]
     d = [d[0]] + d1 + d[1:]
     #after you modify the line you need
     #put the data back together again
