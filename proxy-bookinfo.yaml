@@ -1,0 +1,483 @@
+# Copyright 2017 Istio Authors
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+##################################################################################################
+# This file defines the services, service accounts, and deployments for the Bookinfo sample.
+#
+# To apply all 4 Bookinfo services, their corresponding service accounts, and deployments:
+#
+#   kubectl apply -f samples/bookinfo/platform/kube/bookinfo.yaml
+#
+# Alternatively, you can deploy any resource separately:
+#
+#   kubectl apply -f samples/bookinfo/platform/kube/bookinfo.yaml -l service=reviews # reviews Service
+#   kubectl apply -f samples/bookinfo/platform/kube/bookinfo.yaml -l account=reviews # reviews ServiceAccount
+#   kubectl apply -f samples/bookinfo/platform/kube/bookinfo.yaml -l app=reviews,version=v3 # reviews-v3 Deployment
+##################################################################################################
+
+##################################################################################################
+# Details service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: details
+  labels:
+    app: details
+    service: details
+spec:
+  ports:
+  - port: 9080
+    name: http
+  selector:
+    app: details
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bookinfo-details
+  labels:
+    account: details
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: details-configmap
+data:
+  PROXY_PORT: "8000"
+  DST_PORT: "9080"
+  SERVICE: "details"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: details-v1
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
+  labels:
+    app: details
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: details
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: details
+        version: v1
+    spec:
+      serviceAccountName: bookinfo-details
+      initContainers:
+      - name: init-networking
+        image: utspark/init-networking:latest
+        envFrom:
+        - configMapRef:
+            name: details-configmap
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+      containers:
+      - name: proxy
+        image: utspark/py_proxy:latest
+        envFrom:
+        - configMapRef:
+            name: details-configmap
+        ports:
+        - containerPort: 8000
+      - name: details
+        image: docker.io/istio/examples-bookinfo-details-v1:1.15.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9080
+---
+##################################################################################################
+# Ratings service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratings
+  labels:
+    app: ratings
+    service: ratings
+spec:
+  ports:
+  - port: 9080
+    name: http
+  selector:
+    app: ratings
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bookinfo-ratings
+  labels:
+    account: ratings
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ratings-configmap
+data:
+  PROXY_PORT: "8000"
+  DST_PORT: "9080"
+  SERVICE: "ratings"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratings-v1
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
+  labels:
+    app: ratings
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ratings
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: ratings
+        version: v1
+    spec:
+      serviceAccountName: bookinfo-ratings
+      initContainers:
+      - name: init-networking
+        image: utspark/init-networking:latest
+        envFrom:
+        - configMapRef:
+            name: ratings-configmap
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+      containers:
+      - name: proxy
+        image: utspark/py_proxy:latest
+        envFrom:
+        - configMapRef:
+            name: ratings-configmap
+        ports:
+        - containerPort: 8000
+      - name: ratings
+        image: docker.io/istio/examples-bookinfo-ratings-v1:1.15.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9080
+---
+##################################################################################################
+# Reviews service
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: reviews
+  labels:
+    app: reviews
+    service: reviews
+spec:
+  ports:
+  - port: 9080
+    name: http
+  selector:
+    app: reviews
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bookinfo-reviews
+  labels:
+    account: reviews
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reviews-configmap
+data:
+  PROXY_PORT: "8000"
+  DST_PORT: "9080"
+  SERVICE: "reviews"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reviews-v1
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
+  labels:
+    app: reviews
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reviews
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: reviews
+        version: v1
+    spec:
+      serviceAccountName: bookinfo-reviews
+      initContainers:
+      - name: init-networking
+        image: utspark/init-networking:latest
+        envFrom:
+        - configMapRef:
+            name: reviews-configmap
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+      containers:
+      - name: proxy
+        image: utspark/py_proxy:latest
+        envFrom:
+        - configMapRef:
+            name: reviews-configmap
+        ports:
+        - containerPort: 8000
+      - name: reviews
+        image: docker.io/utspark/examples-bookinfo-reviews-v1:latest
+        imagePullPolicy: Always
+        env:
+        - name: LOG_DIR
+          value: "/tmp/logs"
+        ports:
+        - containerPort: 9080
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: wlp-output
+          mountPath: /opt/ibm/wlp/output
+      volumes:
+      - name: wlp-output
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reviews-v2
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
+  labels:
+    app: reviews
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reviews
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: reviews
+        version: v2
+    spec:
+      serviceAccountName: bookinfo-reviews
+      initContainers:
+      - name: init-networking
+        image: utspark/init-networking:latest
+        envFrom:
+        - configMapRef:
+            name: reviews-configmap
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+      containers:
+      - name: proxy
+        image: utspark/py_proxy:latest
+        envFrom:
+        - configMapRef:
+            name: reviews-configmap
+        ports:
+        - containerPort: 8000
+      - name: reviews
+        image: docker.io/utspark/examples-bookinfo-reviews-v2:latest
+        imagePullPolicy: Always
+        env:
+        - name: LOG_DIR
+          value: "/tmp/logs"
+        ports:
+        - containerPort: 9080
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: wlp-output
+          mountPath: /opt/ibm/wlp/output
+      volumes:
+      - name: wlp-output
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reviews-v3
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
+  labels:
+    app: reviews
+    version: v3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reviews
+      version: v3
+  template:
+    metadata:
+      labels:
+        app: reviews
+        version: v3
+    spec:
+      serviceAccountName: bookinfo-reviews
+      initContainers:
+      - name: init-networking
+        image: utspark/init-networking:latest
+        envFrom:
+        - configMapRef:
+            name: reviews-configmap
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+      containers:
+      - name: proxy
+        image: utspark/py_proxy:latest
+        envFrom:
+        - configMapRef:
+            name: reviews-configmap
+        ports:
+        - containerPort: 8000
+      - name: reviews
+        image: docker.io/utspark/examples-bookinfo-reviews-v3:latest
+        imagePullPolicy: Always
+        env:
+        - name: LOG_DIR
+          value: "/tmp/logs"
+        ports:
+        - containerPort: 9080
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: wlp-output
+          mountPath: /opt/ibm/wlp/output
+      volumes:
+      - name: wlp-output
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
+---
+##################################################################################################
+# Productpage services
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: productpage
+  labels:
+    app: productpage
+    service: productpage
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 9080
+    name: http
+    nodePort: 32080
+  selector:
+    app: productpage
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bookinfo-productpage
+  labels:
+    account: productpage
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: productpage-configmap
+data:
+  PROXY_PORT: "8000"
+  DST_PORT: "9080"
+  SERVICE: "productpage"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productpage-v1
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
+  labels:
+    app: productpage
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: productpage
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: productpage
+        version: v1
+    spec:
+      serviceAccountName: bookinfo-productpage
+      initContainers:
+      - name: init-networking
+        image: utspark/init-networking:latest
+        envFrom:
+        - configMapRef:
+            name: productpage-configmap
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+      containers:
+      - name: proxy
+        image: utspark/soc_proxy2:latest
+        envFrom:
+        - configMapRef:
+            name: productpage-configmap
+        ports:
+        - containerPort: 8000
+      - name: productpage
+        image: utspark/productpage3:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9080
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
+---
