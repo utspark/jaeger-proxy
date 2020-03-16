@@ -39,9 +39,9 @@ Setup jaeger by running deploy_operator.sh
 
 Deploy bookinfo: `kubectl apply -f proxy_bookinfo.yaml`
 
-Access the bookinfo app: <IP>:32080/productpage
+Access the bookinfo app: `<IP>:32080/productpage`
 
-Access the jaeger UI: <IP>:80/search
+Access the jaeger UI: `<IP>:80/search`
 
 # Design and Arch
 <img src="figs/Jaeger.jpg">
