@@ -1,0 +1,3 @@
+[submodule "jaeger-ift-paper"]
+	path = jaeger-ift-paper
+	url = git@github.com:utspark/jaeger-ift-paper.git
