@@ -93,7 +93,7 @@ spec:
             - NET_ADMIN
       containers:
       - name: proxy
-        image: utspark/py_proxy:latest
+        image: utspark/socket_proxy:latest
         envFrom:
         - configMapRef:
             name: details-configmap
@@ -172,7 +172,7 @@ spec:
             - NET_ADMIN
       containers:
       - name: proxy
-        image: utspark/py_proxy:latest
+        image: utspark/socket_proxy:latest
         envFrom:
         - configMapRef:
             name: ratings-configmap
@@ -251,7 +251,7 @@ spec:
             - NET_ADMIN
       containers:
       - name: proxy
-        image: utspark/py_proxy:latest
+        image: utspark/socket_proxy:latest
         envFrom:
         - configMapRef:
             name: reviews-configmap
@@ -310,7 +310,7 @@ spec:
             - NET_ADMIN
       containers:
       - name: proxy
-        image: utspark/py_proxy:latest
+        image: utspark/socket_proxy:latest
         envFrom:
         - configMapRef:
             name: reviews-configmap
@@ -369,7 +369,7 @@ spec:
             - NET_ADMIN
       containers:
       - name: proxy
-        image: utspark/py_proxy:latest
+        image: utspark/socket_proxy:latest
         envFrom:
         - configMapRef:
             name: reviews-configmap

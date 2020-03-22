@@ -1,3 +1,4 @@
+#!/bin/bash
 # Create local bin folder and add it to PATH
 BIN=$HOME/bin
 mkdir -p $BIN
