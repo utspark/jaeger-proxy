@@ -3,8 +3,9 @@
 
 install=$1
 
-if [ $install == "fortio" ] then
+if [ $install == "fortio" ]; then
   BIN=$HOME/tools/usr/bin
+  mkdir -p $HOME/tools/
 else
   BIN=$HOME/bin
   mkdir -p $BIN
@@ -12,13 +13,13 @@ fi
 export PATH=$PATH:$BIN
 echo "Add $BIN to your rc file for future use of kubectl, helm and minikube or fortio"
 
-if [ $install == "fortio" ] then
+if [ $install == "fortio" ]; then
   # Install fortio
   wget https://github.com/fortio/fortio/releases/download/v1.3.1/fortio-linux_x64-1.3.1.tgz
   tar -C $HOME/tools/ -xvpf fortio-linux_x64-1.3.1.tgz
   rm fortio-linux_x64-1.3.1.tgz
 
-elif [ $install == all ] then
+elif [ $install == all ]; then
   # Install Kubectl, Minikube
   curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.17.0/bin/linux/amd64/kubectl
   chmod +x kubectl
@@ -34,7 +35,7 @@ elif [ $install == all ] then
 
   install="startvm"
 
-elif [ $install == "startvm" ] then
+elif [ $install == "startvm" ]; then
   # Start minikube VM
   echo "Starting new VM with 4 CPU and 8GB Memory"
   read -p "You can change settings here or continue with default. Do you wish to change?[y/n]" change
