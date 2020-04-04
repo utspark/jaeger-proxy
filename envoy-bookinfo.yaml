@@ -63,8 +63,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: details-v1
-  annotations:
-    "sidecar.jaegertracing.io/inject": "true"
+  #annotations:
+  #  "sidecar.jaegertracing.io/inject": "true"
   labels:
     app: details
     version: v1
@@ -93,17 +93,32 @@ spec:
             - NET_ADMIN
       containers:
       - name: proxy
-        image: utspark/socket_proxy:latest
-        envFrom:
-        - configMapRef:
-            name: details-configmap
+        image: envoyproxy/envoy-alpine-dev:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
+          protocol: TCP
+          name: envoy-web
+        - containerPort: 9901
+          protocol: TCP
+          name: envoy-admin
+        volumeMounts:
+        - name: envoy-config-volume
+          mountPath: /etc/envoy-config/
+        command: ["/usr/local/bin/envoy"]
+        args: ["-c", "/etc/envoy-config/config.yaml","--service-cluster","details","--service-node","details", "--log-format", "[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v"]
       - name: details
         image: docker.io/istio/examples-bookinfo-details-v1:1.15.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9080
+      volumes:
+      - name: envoy-config-volume
+        configMap:
+          name: sidecar-config
+          items:
+          - key: envoy-config
+            path: config.yaml
 ---
 ##################################################################################################
 # Ratings service
@@ -142,8 +157,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ratings-v1
-  annotations:
-    "sidecar.jaegertracing.io/inject": "true"
+  #annotations:
+  #  "sidecar.jaegertracing.io/inject": "true"
   labels:
     app: ratings
     version: v1
@@ -172,17 +187,32 @@ spec:
             - NET_ADMIN
       containers:
       - name: proxy
-        image: utspark/socket_proxy:latest
-        envFrom:
-        - configMapRef:
-            name: ratings-configmap
+        image: envoyproxy/envoy-alpine-dev:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
+          protocol: TCP
+          name: envoy-web
+        - containerPort: 9901
+          protocol: TCP
+          name: envoy-admin
+        volumeMounts:
+        - name: envoy-config-volume
+          mountPath: /etc/envoy-config/
+        command: ["/usr/local/bin/envoy"]
+        args: ["-c", "/etc/envoy-config/config.yaml","--service-cluster","ratings","--service-node","ratings", "--log-format", "[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v"]
       - name: ratings
         image: docker.io/istio/examples-bookinfo-ratings-v1:1.15.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9080
+      volumes:
+      - name: envoy-config-volume
+        configMap:
+          name: sidecar-config
+          items:
+          - key: envoy-config
+            path: config.yaml
 ---
 ##################################################################################################
 # Reviews service
@@ -221,8 +251,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: reviews-v1
-  annotations:
-    "sidecar.jaegertracing.io/inject": "true"
+  #annotations:
+  #  "sidecar.jaegertracing.io/inject": "true"
   labels:
     app: reviews
     version: v1
@@ -251,12 +281,20 @@ spec:
             - NET_ADMIN
       containers:
       - name: proxy
-        image: utspark/socket_proxy:latest
-        envFrom:
-        - configMapRef:
-            name: reviews-configmap
+        image: envoyproxy/envoy-alpine-dev:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
+          protocol: TCP
+          name: envoy-web
+        - containerPort: 9901
+          protocol: TCP
+          name: envoy-admin
+        volumeMounts:
+        - name: envoy-config-volume
+          mountPath: /etc/envoy-config/
+        command: ["/usr/local/bin/envoy"]
+        args: ["-c", "/etc/envoy-config/config.yaml","--service-cluster","reviews-1","--service-node","reviews-1", "--log-format", "[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v"]
       - name: reviews
         image: docker.io/utspark/examples-bookinfo-reviews-v1:latest
         imagePullPolicy: Always
@@ -275,13 +313,19 @@ spec:
         emptyDir: {}
       - name: tmp
         emptyDir: {}
+      - name: envoy-config-volume
+        configMap:
+          name: sidecar-config
+          items:
+          - key: envoy-config
+            path: config.yaml
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: reviews-v2
-  annotations:
-    "sidecar.jaegertracing.io/inject": "true"
+  #annotations:
+  #  "sidecar.jaegertracing.io/inject": "true"
   labels:
     app: reviews
     version: v2
@@ -310,12 +354,20 @@ spec:
             - NET_ADMIN
       containers:
       - name: proxy
-        image: utspark/socket_proxy:latest
-        envFrom:
-        - configMapRef:
-            name: reviews-configmap
+        image: envoyproxy/envoy-alpine-dev:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
+          protocol: TCP
+          name: envoy-web
+        - containerPort: 9901
+          protocol: TCP
+          name: envoy-admin
+        volumeMounts:
+        - name: envoy-config-volume
+          mountPath: /etc/envoy-config/
+        command: ["/usr/local/bin/envoy"]
+        args: ["-c", "/etc/envoy-config/config.yaml","--service-cluster","reviews-2","--service-node","reviews-2", "--log-format", "[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v"]
       - name: reviews
         image: docker.io/utspark/examples-bookinfo-reviews-v2:latest
         imagePullPolicy: Always
@@ -334,13 +386,19 @@ spec:
         emptyDir: {}
       - name: tmp
         emptyDir: {}
+      - name: envoy-config-volume
+        configMap:
+          name: sidecar-config
+          items:
+          - key: envoy-config
+            path: config.yaml
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: reviews-v3
-  annotations:
-    "sidecar.jaegertracing.io/inject": "true"
+  #annotations:
+  #  "sidecar.jaegertracing.io/inject": "true"
   labels:
     app: reviews
     version: v3
@@ -369,12 +427,20 @@ spec:
             - NET_ADMIN
       containers:
       - name: proxy
-        image: utspark/socket_proxy:latest
-        envFrom:
-        - configMapRef:
-            name: reviews-configmap
+        image: envoyproxy/envoy-alpine-dev:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
+          protocol: TCP
+          name: envoy-web
+        - containerPort: 9901
+          protocol: TCP
+          name: envoy-admin
+        volumeMounts:
+        - name: envoy-config-volume
+          mountPath: /etc/envoy-config/
+        command: ["/usr/local/bin/envoy"]
+        args: ["-c", "/etc/envoy-config/config.yaml","--service-cluster","reviews-3","--service-node","reviews-3", "--log-format", "[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v"]
       - name: reviews
         image: docker.io/utspark/examples-bookinfo-reviews-v3:latest
         imagePullPolicy: Always
@@ -393,6 +459,12 @@ spec:
         emptyDir: {}
       - name: tmp
         emptyDir: {}
+      - name: envoy-config-volume
+        configMap:
+          name: sidecar-config
+          items:
+          - key: envoy-config
+            path: config.yaml
 ---
 ##################################################################################################
 # Productpage services
@@ -433,8 +505,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: productpage-v1
-  annotations:
-    "sidecar.jaegertracing.io/inject": "true"
+  #annotations:
+  #  "sidecar.jaegertracing.io/inject": "true"
   labels:
     app: productpage
     version: v1
@@ -463,7 +535,8 @@ spec:
             - NET_ADMIN
       containers:
       - name: proxy
-        image: envoyproxy/envoy-alpine:v1.7.0
+        image: envoyproxy/envoy-alpine-dev:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
           protocol: TCP
@@ -475,7 +548,7 @@ spec:
         - name: envoy-config-volume
           mountPath: /etc/envoy-config/
         command: ["/usr/local/bin/envoy"]
-        args: ["-c", "/etc/envoy-config/config.yaml", "--v2-config-only", "-l", "info","--service-cluster","productpage","--service-node","productpage", "--log-format", "[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v"]
+        args: ["-c", "/etc/envoy-config/config.yaml","--service-cluster","productpage","--service-node","productpage", "--log-format", "[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v"]
       - name: productpage
         image: utspark/productpage3:latest
         imagePullPolicy: Always
